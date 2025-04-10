@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>APE HAND NFT</title>
-  <link rel="icon" type="image/png" href="coin.png" /> <!-- Favicon coin -->
+  <link rel="icon" type="image/png" href="coin.png" />
   <style>
     body {
       margin: 0;
@@ -75,9 +75,36 @@
       margin: 30px auto 0;
       border-radius: 12px;
     }
+
+    /* Coin flip styles */
+    #coin {
+      margin: 40px auto;
+      width: 100px;
+      height: 100px;
+      position: relative;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+    #coin > div {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      backface-visibility: hidden;
+    }
+    #front {
+      background-image: url('coin-yellow.png');
+    }
+    #back {
+      background-image: url('coin-silver.png');
+      transform: rotateY(180deg);
+    }
   </style>
 </head>
 <body>
+
   <header>
     <h1>APE HAND NFT</h1>
   </header>
@@ -96,12 +123,6 @@
   </section>
 
   <section>
-    <h3>APE Coin Utility</h3>
-    <p>Our native token, <strong>$APH</strong>, powers everything — from staking rewards to ecosystem perks. Holders of Ape Hands will be able to stake and earn $APH.</p>
-    <!-- Gambar dihapus sesuai permintaan -->
-  </section>
-
-  <section>
     <h3>VIP Mint</h3>
     <p>Exclusive minting is now live for VIP addresses. If you’re on the list — it’s time to mint your Ape Hand NFT and unlock your exclusive benefits.</p>
     <img class="vip-benefits" src="benefit.png" alt="VIP NFT Benefits" />
@@ -109,89 +130,68 @@
   </section>
 
   <section>
-    <h3>Roadmap</h3>
-    <ul>
-      <li>🔹 Q2: Website Launch & Whitelist</li>
-      <li>🔹 Q2: Minting & Reveal</li>
-      <li>🔹 Q3: Staking Launch & Marketplace Listing</li>
-      <li>🔹 Q4: Community Airdrops & Ecosystem Expansion</li>
-    </ul>
+    <h3>Mini Game: Coin Flip 🍌💣</h3>
+    <p style="text-align: center;">Pick your side and flip the coin!</p>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <button onclick="startFlip('banana')">🍌 Banana</button>
+      <button onclick="startFlip('bomb')">💣 Bomb</button>
+    </div>
+
+    <div id="coin">
+      <div id="front"></div>
+      <div id="back"></div>
+    </div>
+
+    <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
+    <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
   </section>
 
-  <section>
-    <h3>FAQ</h3>
-    <p><strong>Q:</strong> When is mint?<br/><strong>A:</strong> Very soon — follow us for updates!</p>
-    <p><strong>Q:</strong> Which network?<br/><strong>A:</strong> APE Chain 🦍</p>
-    <p><strong>Q:</strong> Supply?<br/><strong>A:</strong> 2222 total NFTs</p>
-    <p><strong>Q:</strong> Utility?<br/><strong>A:</strong> Stake NFTs to earn $APH. Exclusive perks & access.</p>
-  </section>
+  <audio id="coinSound" src="coin-flip.mp3" preload="auto"></audio>
 
   <footer>
     <p>Follow us on <a href="https://twitter.com" target="_blank">Twitter</a> | &copy; 2025 APE HAND</p>
   </footer>
- <section>
-  <h3 style="text-align: center;">Mini Game: Coin Flip 🍌💣</h3>
-  <p style="text-align: center;">Pick your side and flip the coin!</p>
-  <div style="text-align: center; margin-bottom: 20px;">
-    <button onclick="startFlip('banana')">🍌 Banana</button>
-    <button onclick="startFlip('bomb')">💣 Bomb</button>
-  </div>
 
-  <div id="coin" style="
-    margin: 40px auto;
-    width: 100px;
-    height: 100px;
-    background-image: url('coin-flip.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 50%;
-    transition: transform 0.3s ease-in-out;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  ">
-  </div>
+  <script>
+    let flipCount = 0;
 
-  <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
-  <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
-</section>
+    function startFlip(choice) {
+      const coin = document.getElementById('coin');
+      const resultText = document.getElementById('flipResult');
+      const history = document.getElementById('flipHistory');
+      const sound = document.getElementById('coinSound');
 
-<audio id="coinSound" src="coin-flip.mp3" preload="auto"></audio>
+      const result = Math.random() > 0.5 ? 'banana' : 'bomb';
+      const emoji = result === 'banana' ? '🍌' : '💣';
 
-<script>
-  let flipCount = 0;
+      resultText.innerText = 'Flipping...';
+      sound.currentTime = 0;
+      sound.play();
 
-  function startFlip(choice) {
-    const coin = document.getElementById('coin');
-    const resultText = document.getElementById('flipResult');
-    const history = document.getElementById('flipHistory');
-    const sound = document.getElementById('coinSound');
+      let degree = 0;
+      let interval = setInterval(() => {
+        degree += 30;
+        coin.style.transform = `rotateY(${degree}deg)`;
+      }, 50);
 
-    const result = Math.random() > 0.5 ? 'banana' : 'bomb';
-    const emoji = result === 'banana' ? '🍌' : '💣';
+      setTimeout(() => {
+        clearInterval(interval);
 
-    // Reset display
-    resultText.innerText = 'Flipping...';
-    coin.style.backgroundImage = "url('coin-flip.png')";
-    coin.style.transform = 'rotateY(0deg) translateY(0)';
+        if (result === 'banana') {
+          coin.style.transform = `rotateY(0deg)`;
+        } else {
+          coin.style.transform = `rotateY(180deg)`;
+        }
 
-    sound.currentTime = 0;
-    sound.play();
+        resultText.innerText = result === choice
+          ? `🎉 You win! It was ${emoji}`
+          : `😢 You lose! It was ${emoji}`;
 
-    let angle = 0;
-    let flipInterval = setInterval(() => {
-      angle += 45;
-      coin.style.transform = `rotateY(${angle}deg)`;
-    }, 100);
+        flipCount++;
+        history.innerHTML += `<div>Flip #${flipCount}: ${emoji} (${result === choice ? '✅ Win' : '❌ Lose'})</div>`;
+      }, 3000);
+    }
+  </script>
 
-    setTimeout(() => {
-      clearInterval(flipInterval);
-      coin.style.backgroundImage = result === 'banana' ? "url('banana.png')" : "url('bomb.png')";
-      resultText.innerText = result === choice ? `🎉 You win! It was ${emoji}` : `😢 You lose! It was ${emoji}`;
-
-      flipCount++;
-      history.innerHTML += `<div>Flip #${flipCount}: ${emoji} (${result === choice ? '✅ Win' : '❌ Lose'})</div>`;
-    }, 3000);
-  }
-</script>
 </body>
 </html>
