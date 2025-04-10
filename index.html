@@ -129,5 +129,29 @@
   <footer>
     <p>Follow us on <a href="https://twitter.com" target="_blank">Twitter</a> | &copy; 2025 APE HAND</p>
   </footer>
+  <!-- Coin Flip Game -->
+<section>
+  <h3>Mini Game: Coin Flip 🍌 vs 💣</h3>
+  <p>Choose your side and try your luck!</p>
+  <div style="text-align: center;">
+    <button onclick="flipCoin('banana')">🍌 Banana</button>
+    <button onclick="flipCoin('bomb')">💣 Bomb</button>
+    <p id="gameResult" style="margin-top: 20px; font-size: 1.2rem;"></p>
+  </div>
+</section>
+
+<script>
+  function flipCoin(choice) {
+    const options = ['banana', 'bomb'];
+    const result = options[Math.floor(Math.random() * options.length)];
+
+    let emojiResult = result === 'banana' ? '🍌' : '💣';
+    let message = result === choice
+      ? `You win! It was ${emojiResult}`
+      : `You lose! It was ${emojiResult}`;
+
+    document.getElementById('gameResult').innerText = message;
+  }
+</script>
 </body>
 </html>
