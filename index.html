@@ -127,23 +127,6 @@
     <img class="vip-benefits" src="benefit.png" alt="VIP NFT Benefits" />
     <button onclick="window.open('https://apehand-vip.nfts2.me/', '_blank')">Mint Now</button>
   </section>
-
-  <section>
-    <h3>Mini Game: Coin Flip 🍌💣</h3>
-    <p style="text-align: center;">Pick your side and flip the coin!</p>
-    <div style="text-align: center; margin-bottom: 20px;">
-      <button onclick="startFlip('banana')">🍌 Banana</button>
-      <button onclick="startFlip('bomb')">💣 Bomb</button>
-    </div>
-
-    <div id="coin">
-      <div id="front"></div>
-      <div id="back"></div>
-    </div>
-
-    <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
-    <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
-  </section>
 <section>
     <h3>Roadmap</h3>
     <ul>
@@ -160,6 +143,22 @@
     <p><strong>Q:</strong> Which network?<br/><strong>A:</strong> APE Chain 🦍</p>
     <p><strong>Q:</strong> Supply?<br/><strong>A:</strong> 2222 total NFTs</p>
     <p><strong>Q:</strong> Utility?<br/><strong>A:</strong> Stake NFTs to earn $APH. Exclusive perks & access.</p>
+  <section>
+    <h3>Mini Game: Coin Flip 🍌💣</h3>
+    <p style="text-align: center;">Pick your side and flip the coin!</p>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <button onclick="startFlip('banana')">🍌 Banana</button>
+      <button onclick="startFlip('bomb')">💣 Bomb</button>
+    </div>
+
+    <div id="coin">
+      <div id="front"></div>
+      <div id="back"></div>
+    </div>
+
+    <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
+    <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
+  </section>
   <audio id="coinSound" src="coin-flip.mp3" preload="auto"></audio>
 
   <footer>
