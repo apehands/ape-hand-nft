@@ -129,28 +129,68 @@
   <footer>
     <p>Follow us on <a href="https://twitter.com" target="_blank">Twitter</a> | &copy; 2025 APE HAND</p>
   </footer>
-  <!-- Coin Flip Game -->
-<section>
-  <h3>Mini Game: Coin Flip 🍌 vs 💣</h3>
-  <p>Choose your side and try your luck!</p>
-  <div style="text-align: center;">
-    <button onclick="flipCoin('banana')">🍌 Banana</button>
-    <button onclick="flipCoin('bomb')">💣 Bomb</button>
-    <p id="gameResult" style="margin-top: 20px; font-size: 1.2rem;"></p>
+ <section>
+  <h3 style="text-align: center;">Mini Game: Coin Flip 🍌💣</h3>
+  <p style="text-align: center;">Pick your side and flip the coin!</p>
+  <div style="text-align: center; margin-bottom: 20px;">
+    <button onclick="startFlip('banana')">🍌 Banana</button>
+    <button onclick="startFlip('bomb')">💣 Bomb</button>
   </div>
+
+  <div id="coin" style="
+    margin: 40px auto;
+    width: 100px;
+    height: 100px;
+    background-image: url('coin-flip.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    transition: transform 0.3s ease-in-out;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  ">
+  </div>
+
+  <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
+  <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
 </section>
 
+<audio id="coinSound" src="coin-flip.mp3" preload="auto"></audio>
+
 <script>
-  function flipCoin(choice) {
-    const options = ['banana', 'bomb'];
-    const result = options[Math.floor(Math.random() * options.length)];
+  let flipCount = 0;
 
-    let emojiResult = result === 'banana' ? '🍌' : '💣';
-    let message = result === choice
-      ? `You win! It was ${emojiResult}`
-      : `You lose! It was ${emojiResult}`;
+  function startFlip(choice) {
+    const coin = document.getElementById('coin');
+    const resultText = document.getElementById('flipResult');
+    const history = document.getElementById('flipHistory');
+    const sound = document.getElementById('coinSound');
 
-    document.getElementById('gameResult').innerText = message;
+    const result = Math.random() > 0.5 ? 'banana' : 'bomb';
+    const emoji = result === 'banana' ? '🍌' : '💣';
+
+    // Reset display
+    resultText.innerText = 'Flipping...';
+    coin.style.backgroundImage = "url('coin-flip.png')";
+    coin.style.transform = 'rotateY(0deg) translateY(0)';
+
+    sound.currentTime = 0;
+    sound.play();
+
+    let angle = 0;
+    let flipInterval = setInterval(() => {
+      angle += 45;
+      coin.style.transform = `rotateY(${angle}deg)`;
+    }, 100);
+
+    setTimeout(() => {
+      clearInterval(flipInterval);
+      coin.style.backgroundImage = result === 'banana' ? "url('banana.png')" : "url('bomb.png')";
+      resultText.innerText = result === choice ? `🎉 You win! It was ${emoji}` : `😢 You lose! It was ${emoji}`;
+
+      flipCount++;
+      history.innerHTML += `<div>Flip #${flipCount}: ${emoji} (${result === choice ? '✅ Win' : '❌ Lose'})</div>`;
+    }, 3000);
   }
 </script>
 </body>
