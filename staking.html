@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stake $APH - Ape Hand</title>
+  <link rel="icon" type="image/png" href="coin.png" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #ffb400;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #ccc;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+    button {
+      background-color: #ffb400;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #80ff80;
+    }
+    .container {
+      background-color: #1a1a1a;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+    }
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin: 10px;
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Stake Your $APH</h1>
+    <p>Connect your wallet to start staking and earning rewards. Support the APE HAND ecosystem 💪</p>
+
+    <button onclick="connectWallet()">Connect Wallet</button><br />
+
+    <div>
+      <input id="stakeAmount" type="number" placeholder="Amount to stake" />
+      <button onclick="stakeTokens()">Stake</button>
+    </div>
+
+    <div class="status" id="status">Wallet not connected.</div>
+  </div>
+
+  <script>
+    let web3;
+    let account;
+    const stakingContractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
+    const stakingABI = [ /* ABI of your staking contract */ ];
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          account = accounts[0];
+          document.getElementById("status").innerText = `Wallet connected: ${account}`;
+        } catch (err) {
+          document.getElementById("status").innerText = "Connection denied.";
+        }
+      } else {
+        alert("Please install MetaMask!");
+      }
+    }
+
+    async function stakeTokens() {
+      const amount = document.getElementById("stakeAmount").value;
+      if (!web3 || !account) {
+        alert("Connect wallet first!");
+        return;
+      }
+
+      const contract = new web3.eth.Contract(stakingABI, stakingContractAddress);
+      try {
+        await contract.methods.stake(web3.utils.toWei(amount, "ether")).send({ from: account });
+        document.getElementById("status").innerText = `Staked ${amount} $APH successfully!`;
+      } catch (err) {
+        document.getElementById("status").innerText = "Staking failed.";
+        console.error(err);
+      }
+    }
+  </script>
+
+</body>
+</html>
