@@ -75,32 +75,6 @@
       margin: 30px auto 0;
       border-radius: 12px;
     }
-
-    /* Coin flip styles */
-    #coin {
-      margin: 40px auto;
-      width: 100px;
-      height: 100px;
-      position: relative;
-      transform-style: preserve-3d;
-      perspective: 1000px;
-    }
-    #coin > div {
-      position: absolute;
-      width: 100px;
-      height: 100px;
-      background-size: cover;
-      background-position: center;
-      border-radius: 50%;
-      backface-visibility: hidden;
-    }
-    #front {
-      background-image: url('front.png');
-    }
-    #back {
-      background-image: url('behind.png');
-      transform: rotateY(180deg);
-    }
   </style>
 </head>
 <body>
@@ -115,6 +89,7 @@
     <button onclick="window.open('https://apehand-vip.nfts2.me/', '_blank')">Mint VIP Ape Hand</button>
     <button onclick="window.open('https://x.com/HandOnApe/status/1910361322346488240', '_blank')">Join the Whitelist</button>
   </div>
+
   <section>
     <h3>About</h3>
     <p>APE HAND is a collection of 2222 unique, hand-drawn NFTs. Each hand grips an item — banana, bomb, or bling. These NFTs are more than art — they're your ticket to the APE economy. Stake, earn, and evolve.</p>
@@ -127,7 +102,16 @@
     <img class="vip-benefits" src="benefit.png" alt="VIP NFT Benefits" />
     <button onclick="window.open('https://apehand-vip.nfts2.me/', '_blank')">Mint Now</button>
   </section>
-<section>
+
+  <section>
+    <h3>Staking</h3>
+    <p>Stake your $APH tokens and earn rewards while supporting the ApeHand ecosystem. More utilities coming soon!</p>
+    <div style="text-align: center;">
+      <button onclick="window.open('https://yourstakinglink.com', '_blank')">Stake $APH Now</button>
+    </div>
+  </section>
+
+  <section>
     <h3>Roadmap</h3>
     <ul>
       <li>🔹 Q2: Website Launch & Whitelist</li>
@@ -143,68 +127,11 @@
     <p><strong>Q:</strong> Which network?<br/><strong>A:</strong> APE Chain 🦍</p>
     <p><strong>Q:</strong> Supply?<br/><strong>A:</strong> 2222 total NFTs</p>
     <p><strong>Q:</strong> Utility?<br/><strong>A:</strong> Stake NFTs to earn $APH. Exclusive perks & access.</p>
-  <section>
-    <h3>Mini Game: Coin Flip 🍌💣</h3>
-    <p style="text-align: center;">Pick your side and flip the coin!</p>
-    <div style="text-align: center; margin-bottom: 20px;">
-      <button onclick="startFlip('banana')">🍌 Banana</button>
-      <button onclick="startFlip('bomb')">💣 Bomb</button>
-    </div>
-
-    <div id="coin">
-      <div id="front"></div>
-      <div id="back"></div>
-    </div>
-
-    <p id="flipResult" style="text-align:center; font-size: 1.2rem; margin-top: 20px;"></p>
-    <div id="flipHistory" style="text-align: center; margin-top: 20px; font-size: 0.95rem;"></div>
   </section>
-  <audio id="coinSound" src="coin-flip.mp3" preload="auto"></audio>
 
   <footer>
     <p>Follow us on <a href="https://twitter.com" target="_blank">Twitter</a> | &copy; 2025 APE HAND</p>
   </footer>
-
-  <script>
-    let flipCount = 0;
-
-    function startFlip(choice) {
-      const coin = document.getElementById('coin');
-      const resultText = document.getElementById('flipResult');
-      const history = document.getElementById('flipHistory');
-      const sound = document.getElementById('coinSound');
-
-      const result = Math.random() > 0.5 ? 'banana' : 'bomb';
-      const emoji = result === 'banana' ? '🍌' : '💣';
-
-      resultText.innerText = 'Flipping...';
-      sound.currentTime = 0;
-      sound.play();
-
-      let degree = 0;
-      let interval = setInterval(() => {
-        degree += 30;
-        coin.style.transform = `rotateY(${degree}deg)`;
-      }, 50);
-
-      setTimeout(() => {
-        clearInterval(interval);
-
-        if (result === 'banana') {
-          coin.style.transform = `rotateY(0deg)`;
-        } else {
-          coin.style.transform = `rotateY(180deg)`;
-        }
-
-        resultText.innerText = result === choice
-          ? `🎉 You win! It was ${emoji}`
-          : `😢 You lose! It was ${emoji}`;
-
-        flipCount++;
-        history.innerHTML += `<div>Flip #${flipCount}: ${emoji} (${result === choice ? '✅ Win' : '❌ Lose'})</div>`;
-      }, 3000);
-    }
-  </script>
 
 </body>
 </html>
