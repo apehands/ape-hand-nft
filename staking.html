@@ -3,113 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stake $APH - Ape Hand</title>
-  <link rel="icon" type="image/png" href="coin.png" />
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <title>Stake $APH</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0d0d0d;
+      font-family: Arial, sans-serif;
+      background: #111;
       color: #fff;
-      text-align: center;
-      padding: 40px 20px;
-    }
-    h1 {
-      color: #ffb400;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-    p {
-      color: #ccc;
-      font-size: 1rem;
-      margin-bottom: 30px;
-    }
-    button {
-      background-color: #ffb400;
-      color: #000;
-      border: none;
-      padding: 15px 30px;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 10px;
-    }
-    .status {
-      margin-top: 20px;
-      font-size: 0.9rem;
-      color: #80ff80;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .container {
-      background-color: #1a1a1a;
-      border-radius: 12px;
+      background: #1c1c1c;
       padding: 30px;
-      max-width: 500px;
-      margin: auto;
+      border-radius: 10px;
+      text-align: center;
+      width: 350px;
     }
-    input {
+    input, select, button {
       padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      font-size: 16px;
       border-radius: 6px;
       border: none;
-      margin: 10px;
-      width: 150px;
+    }
+    button {
+      background: #ffb400;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: lightgreen;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <h1>Stake Your $APH</h1>
-    <p>Connect your wallet to start staking and earning rewards. Support the APE HAND ecosystem 💪</p>
-
-    <button onclick="connectWallet()">Connect Wallet</button><br />
-
-    <div>
-      <input id="stakeAmount" type="number" placeholder="Amount to stake" />
-      <button onclick="stakeTokens()">Stake</button>
-    </div>
-
-    <div class="status" id="status">Wallet not connected.</div>
+    <h2>Stake Your $APH</h2>
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <div id="walletAddress"></div>
+    <input type="number" id="amount" placeholder="Amount to stake" />
+    <select id="option">
+      <option value="1">7 Days (5%)</option>
+      <option value="2">1 Month (10%)</option>
+      <option value="3">3 Months (40%)</option>
+      <option value="4">6 Months (90%)</option>
+    </select>
+    <button onclick="stakeTokens()">Stake</button>
+    <div id="status"></div>
   </div>
 
   <script>
-    let web3;
-    let account;
-    const stakingContractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-    const stakingABI = [ /* ABI of your staking contract */ ];
+    const aphTokenAddress = "0x9d515DcEA97b8001d968356878e6cAAab4a14BF5";
+    const stakingContractAddress = "0x08A1634f8b656B927C010Fa0819444001549D653";
+
+    const aphAbi = [
+      {
+        "inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],
+        "name":"transferFrom",
+        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],
+        "name":"transfer",
+        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"account","type":"address"}],
+        "name":"balanceOf",
+        "outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view",
+        "type":"function"
+      }
+    ];
+
+    const stakingAbi = [
+      {
+        "inputs": [{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint8","name":"option","type":"uint8"}],
+        "name": "stake",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
+
+    let provider, signer, stakingContract, aphToken;
 
     async function connectWallet() {
       if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          account = accounts[0];
-          document.getElementById("status").innerText = `Wallet connected: ${account}`;
-        } catch (err) {
-          document.getElementById("status").innerText = "Connection denied.";
-        }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        document.getElementById("walletAddress").innerText = `Connected: ${address}`;
+
+        aphToken = new ethers.Contract(aphTokenAddress, aphAbi, signer);
+        stakingContract = new ethers.Contract(stakingContractAddress, stakingAbi, signer);
       } else {
-        alert("Please install MetaMask!");
+        alert("Please install MetaMask.");
       }
     }
 
     async function stakeTokens() {
-      const amount = document.getElementById("stakeAmount").value;
-      if (!web3 || !account) {
-        alert("Connect wallet first!");
+      const amount = document.getElementById("amount").value;
+      const option = document.getElementById("option").value;
+
+      if (!amount || amount <= 0) {
+        alert("Enter valid amount.");
         return;
       }
 
-      const contract = new web3.eth.Contract(stakingABI, stakingContractAddress);
+      const amountInWei = ethers.parseUnits(amount, 18);
       try {
-        await contract.methods.stake(web3.utils.toWei(amount, "ether")).send({ from: account });
-        document.getElementById("status").innerText = `Staked ${amount} $APH successfully!`;
+        // Approve first
+        const approveTx = await aphToken.transferFrom(await signer.getAddress(), stakingContractAddress, amountInWei);
+        await approveTx.wait();
+
+        // Stake
+        const stakeTx = await stakingContract.stake(amountInWei, parseInt(option));
+        await stakeTx.wait();
+
+        document.getElementById("status").innerText = "✅ Staking success!";
       } catch (err) {
-        document.getElementById("status").innerText = "Staking failed.";
         console.error(err);
+        document.getElementById("status").innerText = "❌ Transaction failed!";
       }
     }
   </script>
-
 </body>
 </html>
