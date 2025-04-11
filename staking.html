@@ -41,7 +41,7 @@
       cursor: pointer;
       margin-top: 20px;
     }
-    #status {
+    #status, #claimStatus, #unstakeStatus {
       margin-top: 20px;
       color: #ffb400;
     }
@@ -67,6 +67,14 @@
     <br/>
     <button onclick="stakeTokens()">Stake</button>
     <p id="status"></p>
+
+    <hr style="margin: 40px auto; width: 50%; border-color: #333;" />
+
+    <button onclick="claimTokens()">🎁 Claim Reward</button>
+    <p id="claimStatus"></p>
+
+    <button onclick="unstakeTokens()">🔓 Unstake (ambil token saja)</button>
+    <p id="unstakeStatus"></p>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
@@ -74,7 +82,7 @@
     let provider, signer, stakingContract, aphToken;
     let currentAddress;
 
-    const stakingContractAddress = "0xcf8b5BDd19469C9c572351614CB96c0f83E32Cf9";
+    const stakingContractAddress = "0xcf8b5BDd19469C9c572351614CB96c0f83E32Cf9"; // ganti kalau kamu deploy ulang
     const aphTokenAddress = "0x9d515DcEA97b8001d968356878e6cAAab4a14BF5";
 
     const stakingAbi = [
@@ -84,6 +92,20 @@
           {"internalType":"uint8","name":"option","type":"uint8"}
         ],
         "name":"stake",
+        "outputs":[],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      },
+      {
+        "inputs":[],
+        "name":"claim",
+        "outputs":[],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      },
+      {
+        "inputs":[],
+        "name":"unstake",
         "outputs":[],
         "stateMutability":"nonpayable",
         "type":"function"
@@ -141,18 +163,15 @@
       const amountInWei = ethers.parseUnits(amount, 18);
 
       try {
-        // Check balance
         const balance = await aphToken.balanceOf(currentAddress);
         if (balance < amountInWei) {
           document.getElementById("status").innerText = "❌ Not enough $APH balance.";
           return;
         }
 
-        // Approve
         const approveTx = await aphToken.approve(stakingContractAddress, amountInWei);
         await approveTx.wait();
 
-        // Stake
         const stakeTx = await stakingContract.stake(amountInWei, parseInt(option));
         await stakeTx.wait();
 
@@ -160,6 +179,28 @@
       } catch (err) {
         console.error(err);
         document.getElementById("status").innerText = "❌ Transaction failed!";
+      }
+    }
+
+    async function claimTokens() {
+      try {
+        const tx = await stakingContract.claim();
+        await tx.wait();
+        document.getElementById("claimStatus").innerText = "🎉 Claim success!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("claimStatus").innerText = "❌ Claim failed!";
+      }
+    }
+
+    async function unstakeTokens() {
+      try {
+        const tx = await stakingContract.unstake();
+        await tx.wait();
+        document.getElementById("unstakeStatus").innerText = "🔓 Unstaked successfully!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("unstakeStatus").innerText = "❌ Unstake failed!";
       }
     }
   </script>
