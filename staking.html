@@ -71,7 +71,7 @@
   <script>
     let provider, signer, stakingContract, aphToken;
 
-    const stakingContractAddress = "0x3DEDD692245D56A0C52cfCE2e8115b0f8ba2f769"; 
+    const stakingContractAddress = "0x08A1634f8b656B927C010Fa0819444001549D653"; 
     const aphTokenAddress = "0x9d515DcEA97b8001d968356878e6cAAab4a14BF5";
 
     const stakingAbi = [
@@ -100,4 +100,61 @@
         "type":"function"
       },
       {
-        "inputs":[{"internalType":"
+        "inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],
+        "name":"transfer",
+        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],
+        "name":"transferFrom",
+        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable",
+        "type":"function"
+      }
+    ];
+
+    async function connect() {
+      if (window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        stakingContract = new ethers.Contract(stakingContractAddress, stakingAbi, signer);
+        aphToken = new ethers.Contract(aphTokenAddress, aphAbi, signer);
+      } else {
+        alert("Please install MetaMask.");
+      }
+    }
+
+    async function stakeTokens() {
+      const amount = document.getElementById("amount").value;
+      const option = document.getElementById("option").value;
+      if (!amount || amount <= 0) {
+        alert("Enter valid amount.");
+        return;
+      }
+
+      const amountInWei = ethers.parseUnits(amount, 18);
+
+      try {
+        const userAddress = await signer.getAddress();
+
+        // Step 1: Approve token
+        const approveTx = await aphToken.approve(stakingContractAddress, amountInWei);
+        await approveTx.wait();
+
+        // Step 2: Stake
+        const stakeTx = await stakingContract.stake(amountInWei, parseInt(option));
+        await stakeTx.wait();
+
+        document.getElementById("status").innerText = "✅ Staking success!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Transaction failed!";
+      }
+    }
+
+    window.onload = connect;
+  </script>
+</body>
+</html>
