@@ -14,12 +14,13 @@
       text-align: center;
     }
     header {
+      background: #111;
       padding: 20px;
-      background: #1a1a1a;
+      border-bottom: 2px solid #ffb400;
     }
     h1 {
+      color: #ffb400;
       margin: 0;
-      font-size: 2rem;
     }
     main {
       padding: 40px 20px;
@@ -34,22 +35,33 @@
     button {
       background: #ffb400;
       color: #000;
-      padding: 12px 24px;
+      padding: 10px 20px;
       font-size: 1rem;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin: 10px;
+    }
+    .history {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 40px;
+    }
+    #status {
+      color: #ffb400;
       margin-top: 20px;
     }
-    #status, #claimStatus, #unstakeStatus {
-      margin-top: 20px;
-      color: #ffb400;
+    .stake-item {
+      margin: 10px 0;
+      padding: 10px;
+      border-bottom: 1px solid #333;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Stake Your $APH</h1>
+    <h1>Stake $APH 🐵</h1>
     <button onclick="connectWallet()">🔗 Connect Wallet</button>
     <p id="walletAddress"></p>
   </header>
@@ -59,148 +71,139 @@
     <input type="number" id="amount" placeholder="Amount" min="0" step="any" />
     <br/>
     <select id="option">
-      <option value="1">3 Days (5%)</option>
-      <option value="2">7 Days (10%)</option>
-      <option value="3">1 Months (50%)</option>
+      <option value="1">1 Day (5%)</option>
+      <option value="2">7 Day (10%)</option>
+      <option value="3">1 Month (40%)</option>
     </select>
     <br/>
-    <button onclick="stakeTokens()">Stake</button>
+    <button onclick="stakeTokens()">📥 Stake</button>
+    <button onclick="claimAll()">💰 Claim All</button>
     <p id="status"></p>
 
-    <hr style="margin: 40px auto; width: 50%; border-color: #333;" />
-
-    <button onclick="claimTokens()">🎁 Claim Reward</button>
-    <p id="claimStatus"></p>
-
-    <button onclick="unstakeTokens()">🔓 Unstake</button>
-    <p id="unstakeStatus"></p>
+    <div class="history">
+      <h2>📜 Your Staking History</h2>
+      <div id="stakeHistory"></div>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
   <script>
-    let provider, signer, stakingContract, aphToken;
-    let currentAddress;
+    let provider, signer, stakingContract, aphToken, currentAddress;
 
-    const stakingContractAddress = "0xcf8b5BDd19469C9c572351614CB96c0f83E32Cf9"; // ganti kalau kamu deploy ulang
+    const stakingContractAddress = "0xcf8b5BDd19469C9c572351614CB96c0f83E32Cf9";
     const aphTokenAddress = "0x9d515DcEA97b8001d968356878e6cAAab4a14BF5";
 
     const stakingAbi = [
       {
-        "inputs":[
-          {"internalType":"uint256","name":"amount","type":"uint256"},
-          {"internalType":"uint8","name":"option","type":"uint8"}
+        "inputs": [{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint8","name":"option","type":"uint8"}],
+        "name":"stake","outputs":[],"stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"uint256","name":"stakeIndex","type":"uint256"}],
+        "name":"claim","outputs":[],"stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"user","type":"address"}],
+        "name":"getStakes","outputs":[
+          {
+            "components":[
+              {"internalType":"uint256","name":"amount","type":"uint256"},
+              {"internalType":"uint256","name":"reward","type":"uint256"},
+              {"internalType":"uint256","name":"endTime","type":"uint256"},
+              {"internalType":"bool","name":"claimed","type":"bool"}
+            ],
+            "internalType":"struct APHStaking.StakeInfo[]","name":"","type":"tuple[]"
+          }
         ],
-        "name":"stake",
-        "outputs":[],
-        "stateMutability":"nonpayable",
-        "type":"function"
-      },
-      {
-        "inputs":[],
-        "name":"claim",
-        "outputs":[],
-        "stateMutability":"nonpayable",
-        "type":"function"
-      },
-      {
-        "inputs":[],
-        "name":"unstake",
-        "outputs":[],
-        "stateMutability":"nonpayable",
-        "type":"function"
+        "stateMutability":"view","type":"function"
       }
     ];
 
     const aphAbi = [
       {
         "inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],
-        "name":"approve",
-        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
-        "stateMutability":"nonpayable",
-        "type":"function"
+        "name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable","type":"function"
       },
       {
         "inputs":[{"internalType":"address","name":"account","type":"address"}],
-        "name":"balanceOf",
-        "outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
-        "stateMutability":"view",
-        "type":"function"
+        "name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view","type":"function"
       }
     ];
 
     async function connectWallet() {
-      if (!window.ethereum) {
-        alert("Please install MetaMask.");
-        return;
-      }
-
+      if (!window.ethereum) return alert("Install MetaMask.");
       provider = new ethers.BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       signer = await provider.getSigner();
       currentAddress = await signer.getAddress();
-
       stakingContract = new ethers.Contract(stakingContractAddress, stakingAbi, signer);
       aphToken = new ethers.Contract(aphTokenAddress, aphAbi, signer);
-
       document.getElementById("walletAddress").innerText = "Connected: " + currentAddress;
+      fetchHistory();
     }
 
     async function stakeTokens() {
-      if (!signer || !currentAddress) {
-        alert("Connect wallet first.");
-        return;
-      }
-
       const amount = document.getElementById("amount").value;
       const option = document.getElementById("option").value;
-
-      if (!amount || amount <= 0) {
-        alert("Enter valid amount.");
-        return;
-      }
-
+      if (!amount || amount <= 0) return alert("Invalid amount");
       const amountInWei = ethers.parseUnits(amount, 18);
-
       try {
-        const balance = await aphToken.balanceOf(currentAddress);
-        if (balance < amountInWei) {
-          document.getElementById("status").innerText = "❌ Not enough $APH balance.";
-          return;
-        }
-
-        const approveTx = await aphToken.approve(stakingContractAddress, amountInWei);
-        await approveTx.wait();
-
-        const stakeTx = await stakingContract.stake(amountInWei, parseInt(option));
-        await stakeTx.wait();
-
+        await aphToken.approve(stakingContractAddress, amountInWei);
+        await stakingContract.stake(amountInWei, parseInt(option));
         document.getElementById("status").innerText = "✅ Staking success!";
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "❌ Transaction failed!";
+        fetchHistory();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("status").innerText = "❌ Staking failed.";
       }
     }
 
-    async function claimTokens() {
+    async function fetchHistory() {
+      const stakeData = await stakingContract.getStakes(currentAddress);
+      const container = document.getElementById("stakeHistory");
+      container.innerHTML = "";
+      stakeData.forEach((s, i) => {
+        const unlockTime = new Date(Number(s.endTime) * 1000).toLocaleString();
+        const item = document.createElement("div");
+        item.className = "stake-item";
+        item.innerHTML = `
+          <b>Stake #${i}</b><br/>
+          Amount: ${ethers.formatUnits(s.amount, 18)} $APH<br/>
+          Reward: ${ethers.formatUnits(s.reward, 18)} $APH<br/>
+          Unlock: ${unlockTime}<br/>
+          Claimed: ${s.claimed ? "✅" : "❌"}<br/>
+          <button onclick="claim(${i})" ${s.claimed ? "disabled" : ""}>🎁 Claim</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function claim(index) {
       try {
-        const tx = await stakingContract.claim();
-        await tx.wait();
-        document.getElementById("claimStatus").innerText = "🎉 Claim success!";
-      } catch (err) {
-        console.error(err);
-        document.getElementById("claimStatus").innerText = "❌ Claim failed!";
+        await stakingContract.claim(index);
+        document.getElementById("status").innerText = `✅ Claimed stake #${index}`;
+        fetchHistory();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("status").innerText = "❌ Claim failed.";
       }
     }
 
-    async function unstakeTokens() {
-      try {
-        const tx = await stakingContract.unstake();
-        await tx.wait();
-        document.getElementById("unstakeStatus").innerText = "🔓 Unstaked successfully!";
-      } catch (err) {
-        console.error(err);
-        document.getElementById("unstakeStatus").innerText = "❌ Unstake failed!";
+    async function claimAll() {
+      const stakeData = await stakingContract.getStakes(currentAddress);
+      for (let i = 0; i < stakeData.length; i++) {
+        if (!stakeData[i].claimed && Date.now() >= stakeData[i].endTime * 1000) {
+          try {
+            await stakingContract.claim(i);
+          } catch (e) {
+            console.warn(`❌ Gagal klaim index ${i}`, e);
+          }
+        }
       }
+      document.getElementById("status").innerText = "✅ All eligible stakes claimed.";
+      fetchHistory();
     }
   </script>
 </body>
